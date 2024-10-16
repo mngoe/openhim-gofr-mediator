@@ -1,0 +1,35 @@
+{
+    "urn": "urn:mediator:gofr_mediator",
+    "version": "1.0.0",
+    "name": "gofr Mediator",
+    "description": "Gofr Mediator",
+    "defaultChannelConfig": [
+      {
+        "name": "gofr Mediator",
+        "urlPattern": "^/gofr$",
+        "routes": [
+          {
+            "name": "gofr Mediator Route",
+            "host": "192.168.1.110",
+            "path": "/",
+            "port": "3000",
+            "primary": true,
+            "type": "http"
+          }
+        ],
+        "allow": ["admin"],
+        "methods": ["GET", "POST"],
+        "type": "http"
+      }
+    ],
+    "endpoints": [
+      {
+        "name": "gofr Mediator Endpoint",
+        "host": "192.168.1.110",
+        "path": "/",
+        "port": "3000",
+        "primary": true,
+        "type": "http"
+      }
+    ]
+  }
