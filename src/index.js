@@ -1,15 +1,16 @@
 'use strict';
 
+import 'dotenv/config';
 import express from 'express';
 import axios from 'axios';
 import { registerMediator } from 'openhim-mediator-utils';
-import mediatorConfig from './mediatorConfig.json' assert { type: 'json' };
+import mediatorConfig from './config/mediatorConfig.json' assert { type: 'json' };
 
 const openhimConfig = {
-    username: 'root@openhim.org',
-    password: 'live123',
-    apiURL: 'https://192.168.1.110:8082',
-    trustSelfSigned: true
+    username: process.env.OPENHIM_USERNAME,
+    password: process.env.OPENHIM_PASSWORD,
+    apiURL: process.env.OPENHIM_API_URL,
+    trustSelfSigned: process.env.OPENHIM_TRUST_SELF_SIGNED
 };
 
 registerMediator(openhimConfig, mediatorConfig, err => {
@@ -27,8 +28,8 @@ let sessionCookie = '';
 const authenticate = async () => {
     try {
         const authResponse = await axios.post(
-            'http://192.168.1.110:4000/auth/login',
-            { username: "root@gofr.org", password: "gofr" },
+            `${process.env.GOFR_API_URL}/auth/login`,
+            { username: process.env.GOFR_USERNAME, password: process.env.GOFR_PASSWORD },
             {
                 headers: {
                     'Content-Type': 'application/json',
@@ -39,7 +40,6 @@ const authenticate = async () => {
         const cookies = authResponse.headers['set-cookie'];
         if (cookies) {
             sessionCookie = cookies.find(cookie => cookie.startsWith('connect.sid='));
-            // console.log('Session Cookie:', sessionCookie);
         } else {
             throw new Error('No cookie returned from authentication');
         }
@@ -57,7 +57,7 @@ app.all('*', async (req, res) => {
 
         const gofrResponse = await axios({
             method: req.method,
-            url: `http://192.168.1.110:4000/fhir/DEFAULT${req.originalUrl}`,
+            url: `${process.env.GOFR_API_URL}${req.originalUrl}`,
             headers: {
                 'Cookie': sessionCookie || '',
                 ...(req.method === 'POST' && { 'Content-Type': 'application/json' }),
@@ -80,7 +80,7 @@ app.all('*', async (req, res) => {
                 await authenticate();
                 const retryResponse = await axios({
                     method: req.method,
-                    url: `http://192.168.1.110:4000/fhir/DEFAULT${req.originalUrl}`,
+                    url: `${process.env.GOFR_API_URL}${req.originalUrl}`,
                     headers: {
                         'Cookie': sessionCookie || '',
                         ...(req.method === 'POST' && { 'Content-Type': 'application/json' }),

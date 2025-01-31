@@ -23,6 +23,7 @@ Before launching this mediator, ensure you have the following set up:
 
 ## Configuration
 
+- Copy the example environment setup and adjust the settings: `cp .env.example .env`.
 - Replace host addresses, ports, and login credentials with your own.
 
 ## Starting the Mediator with Docker
@@ -30,7 +31,7 @@ Before launching this mediator, ensure you have the following set up:
 To start the bootstrap mediator, open a terminal, navigate to the project directory, and run the following commands:
 
 1. Build the Docker image:
-    docker build -t gofr-mediator 
+    docker build -t gofr-mediator .
 
 2. Check the available Docker networks:
     docker network ls
