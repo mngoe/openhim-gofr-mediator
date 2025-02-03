@@ -57,7 +57,7 @@ app.all('*', async (req, res) => {
 
         const gofrResponse = await axios({
             method: req.method,
-            url: `${process.env.GOFR_API_URL}${req.originalUrl}`,
+            url: `${process.env.GOFR_API_URL}/fhir${req.originalUrl}`,
             headers: {
                 'Cookie': sessionCookie || '',
                 ...(req.method === 'POST' && { 'Content-Type': 'application/json' }),
@@ -80,7 +80,7 @@ app.all('*', async (req, res) => {
                 await authenticate();
                 const retryResponse = await axios({
                     method: req.method,
-                    url: `${process.env.GOFR_API_URL}${req.originalUrl}`,
+                    url: `${process.env.GOFR_API_URL}/fhir${req.originalUrl}`,
                     headers: {
                         'Cookie': sessionCookie || '',
                         ...(req.method === 'POST' && { 'Content-Type': 'application/json' }),
