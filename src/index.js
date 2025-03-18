@@ -35,11 +35,16 @@ const authenticate = async () => {
                 password: process.env.GOFR_PASSWORD, 
                 client_id: 'gofr-api',
                 client_secret: 'df3dcc28-f79f-4df7-bd5c-427afe60a41b' 
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',  
+                }
             }
         );
         
         const auth_data = authResponse.data;
-        if (auth_data) {
+        if (auth_data && auth_data.access_token) {
             access_token = auth_data.get('access_token');
         } else {
             throw new Error('No access_token returned from authentication');
