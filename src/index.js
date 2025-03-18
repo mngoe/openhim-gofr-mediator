@@ -45,7 +45,7 @@ const authenticate = async () => {
         
         const auth_data = authResponse.data;
         if (auth_data && auth_data.access_token) {
-            access_token = auth_data.get('access_token');
+            access_token = auth_data.access_token;
         } else {
             throw new Error('No access_token returned from authentication');
         }
@@ -65,7 +65,7 @@ app.all('*', async (req, res) => {
             method: req.method,
             url: `${process.env.GOFR_API_URL}/fhir${req.originalUrl}`,
             headers: {
-                'Authorization': `Bearer ${access_token}` || '',
+                'Authorization': `Bearer ${access_token}`,
                 ...(req.method === 'POST' && { 'Content-Type': 'application/json' }),
             },
             data: req.method === 'POST' ? req.body : undefined
@@ -79,7 +79,7 @@ app.all('*', async (req, res) => {
             console.error('Response Status:', error.response.status);
         }
 
-        // Si une erreur 401 se produit, je réinitialiser le access_token et je retente l'authentification
+        // Si une erreur 401 se produit, je réinitialise le access_token et je retente l'authentification
         if (error.response && error.response.status === 401) {
             access_token = '';
             try {
@@ -88,7 +88,7 @@ app.all('*', async (req, res) => {
                     method: req.method,
                     url: `${process.env.GOFR_API_URL}/fhir${req.originalUrl}`,
                     headers: {
-                        'Authorization': `Bearer ${access_token}` || '',
+                        'Authorization': `Bearer ${access_token}`,
                         ...(req.method === 'POST' && { 'Content-Type': 'application/json' }),
                     },
                     data: req.method === 'POST' ? req.body : undefined
