@@ -23,25 +23,26 @@ registerMediator(openhimConfig, mediatorConfig, err => {
 const app = express();
 app.use(express.json());
 
-let sessionCookie = '';
+let access_token = '';
 
 const authenticate = async () => {
     try {
         const authResponse = await axios.post(
-            `${process.env.GOFR_API_URL}/auth/login`,
-            { username: process.env.GOFR_USERNAME, password: process.env.GOFR_PASSWORD },
-            {
-                headers: {
-                    'Content-Type': 'application/json',
-                }
+            `${process.env.KEYCLOACK_URL}`,
+            {   
+                grant_type: 'password',
+                username: process.env.GOFR_USERNAME, 
+                password: process.env.GOFR_PASSWORD, 
+                client_id: 'gofr-api',
+                client_secret: 'df3dcc28-f79f-4df7-bd5c-427afe60a41b' 
             }
         );
         
-        const cookies = authResponse.headers['set-cookie'];
-        if (cookies) {
-            sessionCookie = cookies.find(cookie => cookie.startsWith('connect.sid='));
+        const auth_data = authResponse.data;
+        if (auth_data) {
+            access_token = auth_data.get('access_token');
         } else {
-            throw new Error('No cookie returned from authentication');
+            throw new Error('No access_token returned from authentication');
         }
     } catch (error) {
         console.error('Login Error:', error.response ? error.response.data : error.message);
@@ -51,7 +52,7 @@ const authenticate = async () => {
 
 app.all('*', async (req, res) => {
     try {
-        if (!sessionCookie) {
+        if (!access_token) {
             await authenticate();
         }
 
@@ -59,7 +60,7 @@ app.all('*', async (req, res) => {
             method: req.method,
             url: `${process.env.GOFR_API_URL}/fhir${req.originalUrl}`,
             headers: {
-                'Cookie': sessionCookie || '',
+                'Authorization': `Bearer ${access_token}` || '',
                 ...(req.method === 'POST' && { 'Content-Type': 'application/json' }),
             },
             data: req.method === 'POST' ? req.body : undefined
@@ -73,16 +74,16 @@ app.all('*', async (req, res) => {
             console.error('Response Status:', error.response.status);
         }
 
-        // Si une erreur 401 se produit, je réinitialiser le cookie et je retente l'authentification
+        // Si une erreur 401 se produit, je réinitialiser le access_token et je retente l'authentification
         if (error.response && error.response.status === 401) {
-            sessionCookie = '';
+            access_token = '';
             try {
                 await authenticate();
                 const retryResponse = await axios({
                     method: req.method,
                     url: `${process.env.GOFR_API_URL}/fhir${req.originalUrl}`,
                     headers: {
-                        'Cookie': sessionCookie || '',
+                        'Authorization': `Bearer ${access_token}` || '',
                         ...(req.method === 'POST' && { 'Content-Type': 'application/json' }),
                     },
                     data: req.method === 'POST' ? req.body : undefined
