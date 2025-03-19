@@ -24,6 +24,7 @@ const app = express();
 app.use(express.json());
 
 let access_token = '';
+let token_expiry_time = 0;
 
 const authenticate = async () => {
     try {
@@ -46,6 +47,7 @@ const authenticate = async () => {
         const auth_data = authResponse.data;
         if (auth_data && auth_data.access_token) {
             access_token = auth_data.access_token;
+            token_expiry_time = Date.now() + auth_data.expires_in * 1000;
         } else {
             throw new Error('No access_token returned from authentication');
         }
@@ -55,9 +57,13 @@ const authenticate = async () => {
     }
 };
 
+const isTokenExpired = () => {
+    return Date.now() >= token_expiry_time;
+};
+
 app.all('*', async (req, res) => {
     try {
-        if (!access_token) {
+        if (isTokenExpired() || !access_token) {
             await authenticate();
         }
 
